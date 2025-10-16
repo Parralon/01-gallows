@@ -2,7 +2,9 @@ package ui;
 
 import domain.BodyPart;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CliUI implements UI<String> {
 
@@ -97,53 +99,29 @@ public class CliUI implements UI<String> {
     }
 
     private String renderGallows(List<BodyPart> hangedParts) {
-        String rendered = "";
-        if (hangedParts.isEmpty()) {
-            return GALLOWS_TEMPLATE.replace(" H ", "   ")
-                    .replace("LH", "  ")
-                    .replace("B", " ")
-                    .replace("RH", "  ")
-                    .replace("LL", "  ")
-                    .replace("RL", "  ");
-        }
-        for (BodyPart hangedPart : hangedParts) {
-            if (hangedPart == BodyPart.HEAD) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", "  ")
-                    .replace("B", " ")
-                    .replace("RH", "  ")
-                    .replace("LL", "  ")
-                    .replace("RL", "  ");
-            if (hangedPart == BodyPart.LEFT_HAND) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", " /")
-                    .replace("B", " ")
-                    .replace("RH", "  ")
-                    .replace("LL", "  ")
-                    .replace("RL", "  ");
-            if (hangedPart == BodyPart.BODY) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", " /")
-                    .replace("B", "|")
-                    .replace("RH", "  ")
-                    .replace("LL", "  ")
-                    .replace("RL", "  ");
-            if (hangedPart == BodyPart.RIGHT_HAND) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", " /")
-                    .replace("B", "|")
-                    .replace("RH", "\\ ")
-                    .replace("LL", "  ")
-                    .replace("RL", "  ");
-            if (hangedPart == BodyPart.LEFT_LEG) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", " /")
-                    .replace("B", "|")
-                    .replace("RH", "\\ ")
-                    .replace("LL", " /")
-                    .replace("RL", "  ");
-            if (hangedPart == BodyPart.RIGHT_LEG) rendered = GALLOWS_TEMPLATE.replace(" H ", " 0 ")
-                    .replace("LH", " /")
-                    .replace("B", "|")
-                    .replace("RH", "\\ ")
-                    .replace("LL", " /")
-                    .replace("RL", "\\ ");
-        }
-        return rendered;
+        Map<String, String> wildcards = new HashMap<>(Map.of(
+                " H ", "   ",
+                "LH", "  ",
+                "B", " ",
+                "RH", "  ",
+                "LL", "  ",
+                "RL", "  "
+        ));
+
+        hangedParts.forEach(hangedPart -> {
+            switch (hangedPart) {
+                case HEAD -> wildcards.put(" H ", " 0 ");
+                case LEFT_HAND -> wildcards.put("LH", " /");
+                case BODY -> wildcards.put("B", "|");
+                case RIGHT_HAND -> wildcards.put("RH", "\\ ");
+                case LEFT_LEG -> wildcards.put("LL", " /");
+                case RIGHT_LEG -> wildcards.put("RL", "\\ ");
+            }
+        });
+        return wildcards.entrySet()
+                .stream()
+                .reduce(GALLOWS_TEMPLATE,
+                        (template, wildcard) -> template.replace(wildcard.getKey(), wildcard.getValue()),
+                        (previousTemplate, currentTemplate) -> currentTemplate);
     }
 }
